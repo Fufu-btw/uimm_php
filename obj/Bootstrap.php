@@ -1,4 +1,5 @@
 <?php
+require_once('Mysql.php');
 
 class Bootstrap {
 
@@ -9,11 +10,19 @@ class Bootstrap {
   private $alertes;
 
   /**
+   * Objet MySQL pour les requêtes
+   * @var object $SQL
+   */
+  private $SQL;  
+
+  /**
    * Constructeur de la classe
    */
   function __construct() {
     // Initialisation des alertes
     $this->alertes = [];
+    // Initialisation de l'objet MySQL
+    $this->SQL = new MySQL();
   }
 
   /**
@@ -224,5 +233,73 @@ class Bootstrap {
       return '<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
       <h1 class="h2">'.$title.'</h1>
       </div>';
+  }
+
+  /**
+   * Génération d'une table depuis un buffer MySQL
+   * @param array $req Résultat de la requête MySQL
+   * @param string $class Styles CSS additionnels
+   * @return string Code HTML résultat
+   */
+  public function tableGeneral($req,$class="") {
+    $str = '<table class="table '.$class.'"><thead><tr>';
+
+    // Récupération des entêtes
+    foreach ($req[0] as $key => $inutile) {
+      $str .= '<th scope="col">'.$key.'</th>';
+    }
+    $str .= '<th scope="col"></th>';
+    $str .= '</thead><tbody>';
+
+    // Récupération du contenu
+    foreach ($req as $lig) {
+      $str .= '<tr>';
+      foreach ($lig as $cel) {
+        $str .= '<td>'.utf8_encode($cel).'</td>';
+      }
+      $str .= '</tr>';
+    }
+    $str .= '</tbody></table>';
+    
+    // Renvoi du résultat
+    return $str;
+  }
+
+  /**
+   * Génération du menu de gauche
+   * @param int $active id de la page active
+   */
+  public function leftGeneral($active) {
+
+    // Vérification si on est connecté
+    $logged=0;
+    if (isset($_SESSION["login"])) {
+      $logged=1;
+    }
+
+    // récupération des urls
+    $req = $this->SQL->myQuery("select * from menus where logged=$logged order by sort");
+
+    // Génération
+    $str = '<nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+      <div class="position-sticky pt-3 sidebar-sticky">
+        <ul class="nav flex-column">';
+    foreach ($req as $lig) {
+      // Ligne active ?
+      $actif='';
+      if ($lig['id']==$active) {
+        $actif = "active";
+      }
+      // Génération du code de la ligne à partir de la base
+      $str .= '<li class="nav-item">
+            <a class="nav-link '.$actif.'" aria-current="page" href="'.$lig["url"].'">
+              <span data-feather="'.$lig["icon"].'" class="align-text-bottom"></span>
+              '.utf8_encode($lig["name"]).'
+            </a>
+          </li>';
+    }
+    $str .= '</ul></div></nav>';
+
+    return $str;
   }
 }
