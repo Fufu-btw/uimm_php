@@ -35,7 +35,7 @@ class Bootstrap {
    * @param bool $required Le champ est-il obligatoire ?
    * @return string Code HTML
    */
-  private function inputGeneral($type,$label,$nom,$placeholder="",$class="",$required=false,) {
+  private function inputGeneral($type,$label,$nom,$placeholder="",$class="",$required=false) {
       $str = '<div class="mb-3">';
       $str .= '<label for="'.$nom.'" class="form-label">'.$label.'</label>';
       $req = "";
@@ -254,9 +254,11 @@ class Bootstrap {
     // Récupération du contenu
     foreach ($req as $lig) {
       $str .= '<tr>';
+      $position = 0;
       foreach ($lig as $cel) {
-        $str .= '<td>'.utf8_encode($cel).'</td>';
+        $str .= '<td>'.utf8_encode($cel).'</td>';      
       }
+      $str .= '<form action="" method=""><button class="btn btn-red btn-sm" type="submit" value="'.$buttonvalue.'">delete</button></form>';
       $str .= '</tr>';
     }
     $str .= '</tbody></table>';
@@ -301,5 +303,30 @@ class Bootstrap {
     $str .= '</ul></div></nav>';
 
     return $str;
+  }
+  /**
+   * @param string $user nom de l'utilisateur
+   * @param string $password mot de passe
+   * @param string $role role du profile
+   */
+  public function addUser($user,$password,$role){
+    $hash = sha1($password);
+    $id = 2;
+    $date = date("Y-m-d H:i:s");
+    if($role = "Administrateur"){
+      $id = 1;
+    }else{
+      $id = 2;
+    }
+    //echo "insert into `users` (`id`, `login`, `password`, `profile_id`, `created_at`, `updated_at`) values (NULL, ".$user.", ".$hash.", ".$id.", ".$date.", ".$date.");";
+    $req = $this->SQL->myQuery("insert into `users` (`id`, `login`, `password`, `profile_id`, `created_at`, `updated_at`) values (NULL, '$user', '$hash', '$id', '$date', '$date');");
+
+  }
+  /**
+   * @param string $user nom de l'utilisateur
+   */
+  public function removeUser($user){
+    //echo "insert into `users` (`id`, `login`, `password`, `profile_id`, `created_at`, `updated_at`) values (NULL, ".$user.", ".$hash.", ".$id.", ".$date.", ".$date.");";
+    $req = $this->SQL->myQuery("delete from `users` where `users`.`login` = '$user';");
   }
 }
